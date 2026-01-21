@@ -322,9 +322,7 @@ public class CombatMove {
 					CombatMove.combatMoveToIdMap.put(combatMove, innerEntry.getKey());
 					
 				} catch(Exception ex) {
-					System.err.println("Loading modded combat move failed at 'CombatMove'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("CombatMove (modded)", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}
@@ -339,9 +337,7 @@ public class CombatMove {
 					CombatMove.combatMoveToIdMap.put(combatMove, innerEntry.getKey());
 					
 				} catch(Exception ex) {
-					System.err.println("Loading combat move failed at 'CombatMove'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("CombatMove", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}

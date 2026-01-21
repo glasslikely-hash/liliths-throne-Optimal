@@ -2815,9 +2815,7 @@ public class ClothingType {
 					}
 					
 				} catch(XMLLoadException ex){ // we want to catch any errors here; we shouldn't want to load any mods that are invalid as that may cause severe bugs
-					System.err.println("Loading modded clothing failed at 'ClothingType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					System.err.println(ex);
+					LogManager.logFileLoadingError("ClothingType (modded)", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}
@@ -2856,9 +2854,7 @@ public class ClothingType {
 					}
 					
 				} catch(Exception ex) {
-					System.err.println("Loading clothing failed at 'ClothingType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("ClothingType", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}

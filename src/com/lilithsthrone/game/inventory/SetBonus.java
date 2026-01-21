@@ -102,9 +102,7 @@ public class SetBonus {
 					idToSetBonusMap.put(id, setBonus);
 //					System.out.println("modded "+id);
 				} catch(Exception ex) {
-					System.err.println("Loading modded set bonus failed at 'SetBonusType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					com.lilithsthrone.utils.logging.LogManager.logFileLoadingError("SetBonus (modded)", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}
@@ -123,9 +121,7 @@ public class SetBonus {
 //					System.out.println("res "+id);
 //					System.out.println("SBT: "+innerEntry.getKey());
 				} catch(Exception ex) {
-					System.err.println("Loading set bonus failed at 'SetBonusType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					com.lilithsthrone.utils.logging.LogManager.logFileLoadingError("SetBonus", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}

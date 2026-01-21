@@ -2601,9 +2601,7 @@ public class ItemType {
 					itemToIdMap.put(ct, id);
 					idToItemMap.put(id, ct);
 				} catch(Exception ex) {
-					System.err.println("Loading modded item failed at 'ItemType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("ItemType (modded)", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}
@@ -2622,9 +2620,7 @@ public class ItemType {
 					idToItemMap.put(id, ct);
 //					System.out.println("IT: "+innerEntry.getKey());
 				} catch(Exception ex) {
-					System.err.println("Loading item failed at 'ItemType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("ItemType", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}
