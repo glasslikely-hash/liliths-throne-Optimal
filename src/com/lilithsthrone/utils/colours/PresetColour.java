@@ -1320,9 +1320,7 @@ public class PresetColour {
 					colourToIdMap.put(colour, id);
 					idToColourMap.put(id, colour);
 				} catch(Exception ex) {
-					System.err.println("Loading modded colour failed at 'Colour'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					com.lilithsthrone.utils.logging.LogManager.logFileLoadingError("Colour (modded)", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}
@@ -1339,9 +1337,7 @@ public class PresetColour {
 					colourToIdMap.put(colour, id);
 					idToColourMap.put(id, colour);
 				} catch(Exception ex) {
-					System.err.println("Loading colour failed at 'Colour'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					com.lilithsthrone.utils.logging.LogManager.logFileLoadingError("Colour", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}

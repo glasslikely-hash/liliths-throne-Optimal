@@ -6525,6 +6525,21 @@ public abstract class GameCharacter implements XMLSaving {
 	}
 	
 	public String incrementExperience(int increment, boolean withExtraModifiers) {
+		// Delegate to CharacterEngine if this is the player and bridge is available
+		if (this.isPlayer()) {
+			try {
+				com.lilithsthrone.game.character.PlayerCharacterAdapter.delegateExperienceGain((PlayerCharacter) this, increment);
+				// If bridge delegation succeeds, return early to let engine handle the full flow
+				if (com.lilithsthrone.game.character.PlayerCharacterAdapter.isBridgeAvailable()) {
+					// Legacy code will still execute below for backward compatibility
+					// The engine update happens asynchronously
+				}
+			} catch (Exception e) {
+				// If delegation fails, fall back to legacy behavior
+				System.err.println("[GameCharacter] Failed to delegate experience to engine: " + e.getMessage());
+			}
+		}
+		
 		if (getLevel() >= LEVEL_CAP) {
 			experience = 0;
 			return "";

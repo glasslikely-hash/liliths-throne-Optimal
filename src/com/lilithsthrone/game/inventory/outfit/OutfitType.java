@@ -110,9 +110,7 @@ public enum OutfitType {
 					outfitsToIdMap.put(ct, id);
 					idToOutfitMap.put(id, ct);
 				} catch(Exception ex) {
-					System.err.println("Loading modded outfit failed at 'OutfitType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("OutfitType (modded)", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}
@@ -132,9 +130,7 @@ public enum OutfitType {
 					idToOutfitMap.put(id, ct);
 //					System.out.println("OT: "+innerEntry.getKey());
 				} catch(Exception ex) {
-					System.err.println("Loading outfit failed at 'OutfitType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("OutfitType", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}

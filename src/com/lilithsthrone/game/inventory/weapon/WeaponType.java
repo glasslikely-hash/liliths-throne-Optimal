@@ -119,9 +119,7 @@ public class WeaponType {
 					weaponToIdMap.put(ct, id);
 					idToWeaponMap.put(id, ct);
 				} catch(Exception ex) {
-					System.err.println("Loading modded weapon failed at 'WeaponType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("WeaponType (modded)", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}
@@ -141,9 +139,7 @@ public class WeaponType {
 					idToWeaponMap.put(id, ct);
 //					System.out.println("WT: "+innerEntry.getKey());
 				} catch(Exception ex) {
-					System.err.println("Loading weapon failed at 'WeaponType'. File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("WeaponType", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}

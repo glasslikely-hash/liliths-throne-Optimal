@@ -274,9 +274,7 @@ public class RandomEnchantment {
 					}
 //					System.out.println("res randomEnchantment: "+innerEntry.getKey());
 				} catch(Exception ex) {
-					System.err.println("Loading RandomEnchantment failed at 'getAllRandomEnchantments' (RES). File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("RandomEnchantment (RES)", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}
@@ -293,9 +291,7 @@ public class RandomEnchantment {
 					}
 //					System.out.println("modded randomEnchantment: "+innerEntry.getKey());
 				} catch(Exception ex) {
-					System.err.println("Loading RandomEnchantment failed at 'getAllRandomEnchantments' (MODS). File path: "+innerEntry.getValue().getAbsolutePath());
-					System.err.println("Actual exception: ");
-					ex.printStackTrace(System.err);
+					LogManager.logFileLoadingError("RandomEnchantment (MODS)", innerEntry.getValue().getAbsolutePath(), ex);
 				}
 			}
 		}

@@ -43,6 +43,10 @@ import com.lilithsthrone.game.sex.Sex;
 import com.lilithsthrone.utils.CreditsSlot;
 import com.lilithsthrone.utils.Util;
 import com.lilithsthrone.utils.colours.PresetColour;
+import com.lilithsthrone.utils.storage.GameStorage;
+import com.lilithsthrone.utils.storage.GameStorageFactory;
+import com.lilithsthrone.ui.UIManager;
+import com.lilithsthrone.ui.UIManagerFactory;
 import com.lilithsthrone.world.Generation;
 import com.lilithsthrone.world.WorldType;
 import com.lilithsthrone.world.places.PlaceType;
@@ -82,6 +86,9 @@ public class Main extends Application {
 	public static Scene mainScene;
 
 	public static Stage primaryStage;
+
+	public static GameStorage gameStorage = GameStorageFactory.getGameStorage();
+	public static UIManager uiManager = UIManagerFactory.getUIManager();
 	
 	public static final String AUTHOR = "Innoxia";
 	public static final String GAME_NAME = "Lilith's Throne";
@@ -537,15 +544,15 @@ public class Main extends Application {
 	}
 	
 	protected static void CheckForDataDirectory() {
-		File dir = new File("data/");
+		File dir = gameStorage.getBaseGameDirectory();
 		if(!dir.exists()) {
 			Alert a = new Alert(AlertType.ERROR,
-					"Unable to find the 'data' folder ("+dir.getAbsolutePath()+"). Saving and error logging is disabled."
+					"Unable to find the game data folder ("+dir.getAbsolutePath()+"). Saving and error logging is disabled."
 							+ "\nMake sure that you've extracted the game from the zip file, and that the file has write permissions."
 							+ "\n(Please read section 'MISSING FOLDERS' in the README.txt file.)"
 							+ "\nContinue?",
 					ButtonType.YES, ButtonType.NO);
-			System.err.println("Unable to find the 'data' folder ("+dir.getAbsolutePath()+").");
+			System.err.println("Unable to find the game data folder ("+dir.getAbsolutePath()+").");
 			a.showAndWait().ifPresent(response -> {
 			     if (response == ButtonType.NO) {
 			         System.exit(1);
@@ -951,7 +958,7 @@ public class Main extends Application {
 	}
 
 	public static boolean isLoadGameAvailable(String name) {
-		File file = new File("data/saves/"+name+".xml");
+		File file = new File(gameStorage.getPersistentSaveDirectory(), name+".xml");
 
 		return file.exists();
 	}
@@ -969,7 +976,7 @@ public class Main extends Application {
 	}
 	
 	public static void deleteGame(String name) {
-		File file = new File("data/saves/"+name+".xml");
+		File file = new File(gameStorage.getPersistentSaveDirectory(), name+".xml");
 
 		if (file.exists()) {
 			try {
@@ -985,7 +992,7 @@ public class Main extends Application {
 	}
 
 	public static void deleteExportedGame(String name) {
-		File file = new File("data/saves/"+name+".xml");
+		File file = new File(gameStorage.getPersistentSaveDirectory(), name+".xml");
 
 		if (file.exists()) {
 			try {
@@ -1001,7 +1008,7 @@ public class Main extends Application {
 	}
 
 	public static void deleteExportedCharacter(String name) {
-		File file = new File("data/characters/"+name+".xml");
+		File file = new File(gameStorage.getBaseGameDirectory(), "characters/" + name + ".xml");
 
 		if (file.exists()) {
 			try {
@@ -1018,12 +1025,12 @@ public class Main extends Application {
 	
 	/**
 	 * @param sortAlphabetically Pass in true if you want the files sorted alphabetically, false if you want them sorted by date modified.
-	 * @return A list of xml files from the 'data/saves' folder.
+	 * @return A list of xml files from the saved games directory.
 	 */
 	public static List<File> getSavedGames(boolean sortAlphabetically) {
 		List<File> filesList = new ArrayList<>();
 		
-		File dir = new File("data/saves");
+		File dir = gameStorage.getPersistentSaveDirectory();
 		if (dir.isDirectory()) {
 			File[] directoryListing = dir.listFiles((path, name) -> name.endsWith(".xml"));
 			if (directoryListing != null) {
@@ -1043,7 +1050,7 @@ public class Main extends Application {
 	public static List<File> getCharactersForImport() {
 		List<File> filesList = new ArrayList<>();
 		
-		File dir = new File("data/characters");
+		File dir = new File(gameStorage.getBaseGameDirectory(), "characters");
 		if (dir.isDirectory()) {
 			File[] directoryListing = dir.listFiles((path, name) -> name.endsWith(".xml"));
 			if (directoryListing != null) {
@@ -1059,7 +1066,7 @@ public class Main extends Application {
 	public static List<File> getSlavesForImport() {
 		List<File> filesList = new ArrayList<>();
 		
-		File dir = new File("data/characters");
+		File dir = new File(gameStorage.getBaseGameDirectory(), "characters");
 		if (dir.isDirectory()) {
 			File[] directoryListing = dir.listFiles((path, name) -> name.endsWith(".xml"));
 			if (directoryListing != null) {
@@ -1075,7 +1082,7 @@ public class Main extends Application {
 	public static List<File> getGamesForImport() {
 		List<File> filesList = new ArrayList<>();
 		
-		File dir = new File("data/saves");
+		File dir = gameStorage.getPersistentSaveDirectory();
 		if (dir.isDirectory()) {
 			File[] directoryListing = dir.listFiles((path, name) -> name.endsWith(".xml"));
 			if (directoryListing != null) {

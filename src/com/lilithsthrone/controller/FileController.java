@@ -250,8 +250,8 @@ public class FileController {
 		id = "NEW_SAVE";
 		if (MainController.document.getElementById(id) != null) {
 			((EventTarget) MainController.document.getElementById(id)).addEventListener("click", e->{
-				Main.mainController.getWebEngine().executeScript("document.getElementById('hiddenPField').innerHTML=document.getElementById('new_save_name').value;");
-				Main.saveGame(Main.mainController.getWebEngine().getDocument().getElementById("hiddenPField").getTextContent(), false, false);
+				String saveName = Main.uiManager.getFormValue("new_save_name");
+				Main.saveGame(saveName, false, false);
 			}, false);
 			MainController.addTooltipListeners(id, new TooltipInformationEventListener().setInformation("Save", ""));
 		} else {
@@ -288,8 +288,8 @@ public class FileController {
 		}
 		if (MainController.document.getElementById("NEW_SAVE") != null) {
 			((EventTarget) MainController.document.getElementById("NEW_SAVE")).addEventListener("click", e->{
-				Main.mainController.getWebEngine().executeScript("document.getElementById('hiddenPField').innerHTML=document.getElementById('new_save_name').value;");
-				Main.saveGame(Main.mainController.getWebEngine().getDocument().getElementById("hiddenPField").getTextContent(), false, false);
+				String saveName = Main.uiManager.getFormValue("new_save_name");
+				Main.saveGame(saveName, false, false);
 			}, false);
 		}
 	}
