@@ -40,9 +40,7 @@ import com.lilithsthrone.game.inventory.clothing.AbstractClothing;
 import com.lilithsthrone.game.inventory.clothing.DisplacementType;
 import com.lilithsthrone.main.Main;
 import com.lilithsthrone.utils.colours.Colour;
-
-import javafx.scene.input.KeyCode;
-import javafx.scene.paint.Color;
+import com.lilithsthrone.utils.colours.ColorRGB;
 
 /**
  * This is just a big mess of utility classes that I wanted to throw somewhere.
@@ -137,26 +135,20 @@ public class Util {
 		return Color.color(r, g, b);
 	}
 	
-	public static String toWebHexString(Color colour) {
-		String c = colour.toString().substring(2, 8);
-//		System.out.println(c);
-		return "#"+c;
+	public static String toWebHexString(ColorRGB colour) {
+		return colour.toString().substring(2, 8);
 	}
 
-	public static Color newColour(String colourString) {
+	public static ColorRGB newColour(String colourString) {
 		int hex = Integer.valueOf(colourString.substring(1), 16);
 		return newColour((hex & 0xFF0000) >> 16, (hex & 0xFF00) >> 8, (hex & 0xFF));
-//		return Color.color(
-//				Integer.valueOf(colourString.substring(1, 3), 16) / 255,
-//				Integer.valueOf(colourString.substring(3, 5), 16) / 255,
-//				Integer.valueOf(colourString.substring(5, 7), 16) / 255);
 	}
 	
-	public static Color newColour(double r, double g, double b) {
-		return Color.color(r / 255, g / 255, b / 255);
+	public static ColorRGB newColour(double r, double g, double b) {
+		return new ColorRGB((int)r, (int)g, (int)b);
 	}
 
-	public static Color newColour(int hex) {
+	public static ColorRGB newColour(int hex) {
 		return newColour((hex & 0xFF0000) >> 16, (hex & 0xFF00) >> 8, (hex & 0xFF));
 	}
 	

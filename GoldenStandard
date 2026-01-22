@@ -1,0 +1,89 @@
+
+AI Refactor Prompt Sequence for the Game
+Step 0: Initial Instructions (Global context for AI)
+
+You are tasked with refactoring a legacy Java game for cross-platform desktop and mobile. The goal is to:
+• Decouple Data, Logic, and UI layers.
+• Convert static content (characters, items, quests, world data) from XML + enums into binary format for fast, deterministic access.
+• Refactor logic layer to implement snapshot + delta persistence, where: 
+• Snapshot = deterministic state (choices made, areas visited, quests completed)
+• Delta = dynamic state (player inventory, equipment, temporary stats/buffs)
+• The logic layer can read/write only to the persistence system (manual/auto save); all other data layers are read-only.
+• Replace JavaFX/WebView UI with LibGDX for cross-platform rendering and input.
+• Support autosave (optional periodic flush to cache/temp) and manual save to persistent storage.
+• All binary read/write operations use a shared binary engine you design, capable of fast serialization/deserialization.
+Refactor incrementally: start with data layer, then logic layer, then UI, then persistence, then optimization, then tests. Provide only one step at a time.
+Step 1: Refactor Data Layer
+
+Step 1: Refactor the data layer.
+• Extract all static, deterministic game data from the existing XML + enums. This includes: 
+• Characters, classes, stats
+• Weapons, armor, equipment
+• Story branches, quests, flags
+• World locations, areas, tiles, NPC states
+• Convert data to JSON first for clarity, then serialize into compact binary files.
+• Build a binary engine API to read these files efficiently: 
+• Random access to individual entries
+• Lazy-loading optional for large datasets
+• Provide getters only (read-only to logic layer)
+• Ensure all internal references use IDs or indices, not object pointers.
+Output: a fully refactored data layer with binary files and a clean API that allows logic layer to read static content.
+Step 2: Refactor Logic Layer (Snapshot + Delta)
+
+Step 2: Refactor the logic layer.
+• Extract all core mechanics (combat, inventory, buffs, movement, quests, events).
+• Separate state into: 
+• Deterministic state (snapshot): story choices, visited areas, quest progress
+• Dynamic state (delta): player inventory, equipment, temporary buffs/stats
+• Implement a snapshot engine: 
+• Serialize full deterministic state periodically or at checkpoints
+• Store to disk/cache as per platform
+• Implement a delta engine: 
+• Track only changes in memory buffer
+• Flush asynchronously to disk/cache at intervals or thresholds
+• Expose a clean API to the UI layer: 
+• Query state (player, world, inventory)
+• Trigger actions (equip, move, interact, use item)
+• Use the binary engine from Step 1 for both reading static data and reading/writing snapshots/deltas.
+Constraint: The logic layer may read/write only the snapshot/delta persistence system; all other data layers are read-only.
+Step 3: Refactor UI Layer
+
+Step 3: Refactor the UI layer.
+• Remove all JavaFX/WebView dependencies.
+• Implement LibGDX rendering and input.
+• Create standardized assets: buttons, menus, effects, animations.
+• UI must query logic layer API only for data; it must not modify engine state directly.
+• Support platform-specific layout adjustments for desktop vs mobile.
+Output: fully functional UI that renders engine state and handles player input.
+Step 4: Integrate Manual & Auto Saving
+
+Step 4: Implement manual and auto saving.
+• Logic layer writes deterministic snapshots and dynamic deltas to the persistence system only.
+• Autosave: periodically flush snapshots/deltas to cache (mobile) or temp folder (desktop) asynchronously.
+• Manual save: flush full snapshot + delta to permanent storage (disk).
+• On load: reconstruct engine state from last snapshot + deltas.
+• Ensure binary engine is used for all read/write operations.
+• RAM buffer holds current session; cache/temp is optional for crash recovery; permanent save is authoritative.
+Step 5: Optimization
+
+Step 5: Optimize performance for desktop and mobile.
+• Minimize in-memory footprint; keep only active chunks and recent deltas.
+• Batch delta writes to reduce I/O overhead.
+• Lazy-load large datasets from binary files.
+• Use asynchronous writes for snapshots/deltas.
+• Avoid runtime XML/JSON parsing; everything should load from binaries.
+• Test that frame rate remains smooth and memory usage is reasonable on mobile devices.
+Step 6: Testing & Validation
+
+Step 6: Implement comprehensive testing.
+• Unit tests for snapshot + delta reconstruction (engine state matches expected outcomes).
+• Validate UI correctly reflects engine state.
+• Test manual save, autosave, and load functionality on both mobile and desktop.
+• Ensure deterministic state remains consistent and dynamic state correctly updates.
+• Optional: generate logs to verify binary engine read/write correctness.
+Notes for AI Execution
+• Each step builds on the previous; do not merge steps.
+• Always use binary engine for read/write.
+• Logic layer persistence is the only writable interface; all static data remains read-only.
+• Autosave is optional, manual save is authoritative.
+• Keep UI fully decoupled from logic and data layers.

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.game.character.GameCharacter;
 import com.lilithsthrone.game.character.body.FluidCum;
 import com.lilithsthrone.game.character.body.FluidMilk;
@@ -30,6 +31,7 @@ import com.lilithsthrone.utils.colours.Colour;
 import com.lilithsthrone.utils.colours.ColourListPresets;
 
 
+
 /**
  * @since 0.3.9
  * @version 0.4
@@ -39,8 +41,18 @@ public class ItemGeneration {
 	
 	// Item generation:
 
+	/**
+	 * Generate an item by ID, querying through DataStore.
+	 * 
+	 * Phase 3 migration: Now uses DataStore.getInstance().getItemType(id)
+	 * instead of ItemType.getItemTypeFromId(id) for centralized access.
+	 */
 	public AbstractItem generateItem(String id) {
-		return new AbstractItem(ItemType.getItemTypeFromId(id)) {};
+		AbstractItemType itemType = DataStore.getInstance().getItemType(id);
+		if (itemType == null) {
+			return null;
+		}
+		return new AbstractItem(itemType) {};
 	}
 	
 	public AbstractItem generateItem(AbstractItemType itemType) {
@@ -52,15 +64,30 @@ public class ItemGeneration {
 	}
 
 	public AbstractItem generateFilledBreastPump(Colour colour, GameCharacter character, FluidMilk milk, int quantity) {
-		return new AbstractFilledBreastPump(ItemType.MOO_MILKER_FULL, colour, character, milk, quantity) {};
+		// Phase 3 migration: Now uses DataStore to retrieve the MOO_MILKER_FULL item type
+		AbstractItemType mooMilkerFull = DataStore.getInstance().getItemType("moo_milker_full");
+		if (mooMilkerFull == null) {
+			return null;
+		}
+		return new AbstractFilledBreastPump(mooMilkerFull, colour, character, milk, quantity) {};
 	}
 	
 	
 	
 	// Weapon generation:
 	
+	/**
+	 * Generate a weapon by ID, querying through DataStore.
+	 * 
+	 * Phase 3 migration: Now uses DataStore.getInstance().getWeaponType(id)
+	 * instead of WeaponType.getWeaponTypeFromId(id) for centralized access.
+	 */
 	public AbstractWeapon generateWeapon(String id) {
-		return generateWeapon(WeaponType.getWeaponTypeFromId(id));
+		AbstractWeaponType wt = DataStore.getInstance().getWeaponType(id);
+		if (wt == null) {
+			return null;
+		}
+		return generateWeapon(wt);
 	}
 
 	public AbstractWeapon generateWeapon(AbstractWeaponType wt) {
@@ -72,11 +99,21 @@ public class ItemGeneration {
 	}
 	
 	public AbstractWeapon generateWeapon(String id, DamageType dt) {
-		return generateWeapon(WeaponType.getWeaponTypeFromId(id), dt, null);
+		// Phase 3 migration: Now uses DataStore.getInstance().getWeaponType(id)
+		AbstractWeaponType wt = DataStore.getInstance().getWeaponType(id);
+		if (wt == null) {
+			return null;
+		}
+		return generateWeapon(wt, dt, null);
 	}
 	
 	public AbstractWeapon generateWeapon(String id, DamageType dt, List<Colour> colours) {
-		return generateWeapon(WeaponType.getWeaponTypeFromId(id), dt, colours);
+		// Phase 3 migration: Now uses DataStore.getInstance().getWeaponType(id)
+		AbstractWeaponType wt = DataStore.getInstance().getWeaponType(id);
+		if (wt == null) {
+			return null;
+		}
+		return generateWeapon(wt, dt, colours);
 	}
 	
 	public AbstractWeapon generateWeapon(AbstractWeaponType wt, DamageType dt, List<Colour> colours) {

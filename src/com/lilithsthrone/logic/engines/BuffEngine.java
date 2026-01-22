@@ -1,7 +1,9 @@
 package com.lilithsthrone.logic.engines;
 
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.logic.persistence.DeltaEngine;
 import com.lilithsthrone.logic.state.GameState;
+import com.lilithsthrone.utils.logging.LogManager;
 import java.util.*;
 
 /**
@@ -45,7 +47,7 @@ public class BuffEngine extends BaseEngine {
         effectStacks.clear();
         activePerkIds.clear();
         attributeModifiers.clear();
-        System.out.println("[" + ENGINE_NAME + "] Initialized");
+        LogManager.info(ENGINE_NAME, "Initialized");
     }
     
     @Override
@@ -55,6 +57,11 @@ public class BuffEngine extends BaseEngine {
     }
     
     public void applyEffect(String effectId, int durationSeconds) {
+        if (durationSeconds <= 0) {
+            LogManager.warn(ENGINE_NAME, "Cannot apply effect with duration <= 0: " + effectId);
+            return;
+        }
+        
         int currentDuration = activeEffects.getOrDefault(effectId, 0);
         activeEffects.put(effectId, currentDuration + durationSeconds);
         
@@ -66,7 +73,7 @@ public class BuffEngine extends BaseEngine {
         applyEffectModifiers(effectId, stacks);
         
         recordChange("activeEffects", durationSeconds);
-        System.out.println("[" + ENGINE_NAME + "] Effect applied: " + effectId + " for " + durationSeconds + " seconds (stacks: " + stacks + ")");
+        LogManager.info(ENGINE_NAME, "Effect applied: " + effectId + " for " + durationSeconds + " seconds (stacks: " + stacks + ")");
     }
     
     public void removeEffect(String effectId) {
@@ -74,7 +81,7 @@ public class BuffEngine extends BaseEngine {
         effectStacks.remove(effectId);
         removeEffectModifiers(effectId);
         recordChange("activeEffects", effectId);
-        System.out.println("[" + ENGINE_NAME + "] Effect removed: " + effectId);
+        LogManager.info(ENGINE_NAME, "Effect removed: " + effectId);
     }
     
     public void addPerk(String perkId) {
@@ -137,7 +144,6 @@ public class BuffEngine extends BaseEngine {
     public void shutdown() {
         super.shutdown();
         activeEffects.clear();
-        activePerkIds.clear();
-        System.out.println("[" + ENGINE_NAME + "] Shutdown");
+        LogManager.info(ENGINE_NAME, "Shutdown");
     }
 }

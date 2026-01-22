@@ -19,59 +19,26 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerFactory;
 
-import com.lilithsthrone.controller.MainController;
-import com.lilithsthrone.controller.TooltipUpdateThread;
 import com.lilithsthrone.game.Game;
 import com.lilithsthrone.game.Properties;
 import com.lilithsthrone.game.PropertyValue;
-import com.lilithsthrone.game.character.CharacterImportSetting;
-import com.lilithsthrone.game.character.PlayerCharacter;
-import com.lilithsthrone.game.character.body.valueEnums.Femininity;
-import com.lilithsthrone.game.character.gender.Gender;
-import com.lilithsthrone.game.character.persona.NameTriplet;
-import com.lilithsthrone.game.character.quests.QuestLine;
-import com.lilithsthrone.game.character.race.RaceStage;
 import com.lilithsthrone.game.character.race.Subspecies;
 import com.lilithsthrone.game.combat.Combat;
-import com.lilithsthrone.game.dialogue.DialogueNode;
-import com.lilithsthrone.game.dialogue.DialogueNodeType;
-import com.lilithsthrone.game.dialogue.responses.Response;
-import com.lilithsthrone.game.dialogue.story.CharacterCreation;
-import com.lilithsthrone.game.dialogue.utils.MapTravelType;
-import com.lilithsthrone.game.dialogue.utils.OptionsDialogue;
 import com.lilithsthrone.game.sex.Sex;
 import com.lilithsthrone.utils.CreditsSlot;
-import com.lilithsthrone.utils.Util;
-import com.lilithsthrone.utils.colours.PresetColour;
 import com.lilithsthrone.utils.storage.GameStorage;
 import com.lilithsthrone.utils.storage.GameStorageFactory;
 import com.lilithsthrone.ui.UIManager;
 import com.lilithsthrone.ui.UIManagerFactory;
-import com.lilithsthrone.world.Generation;
-import com.lilithsthrone.world.WorldType;
-import com.lilithsthrone.world.places.PlaceType;
 
-import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
-import javafx.scene.image.Image;
-import javafx.scene.layout.Pane;
-import javafx.scene.text.Font;
-import javafx.stage.Stage;
+// LibGDX replaces JavaFX - imports removed
 
 /**
  * @since 0.1.0
  * @version 0.4.11
  * @author Innoxia
  */
-public class Main extends Application {
+public class Main {
 
 	public static Game game;
 	public static Sex sex;
@@ -81,12 +48,7 @@ public class Main extends Application {
 	private static DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 	private static DocumentBuilder docBuilder;
 
-	public static MainController mainController;
-
-	public static Scene mainScene;
-
-	public static Stage primaryStage;
-
+	// LibGDX replaces JavaFX rendering - no mainController or Scene needed
 	public static GameStorage gameStorage = GameStorageFactory.getGameStorage();
 	public static UIManager uiManager = UIManagerFactory.getUIManager();
 	
@@ -145,12 +107,10 @@ public class Main extends Application {
 
 	// World generation:
 	public static Generation gen;
-	@Override
-	public void start(Stage primaryStage) throws Exception {
-
-		CheckForDataDirectory();
-		CheckForResFolder();
-		
+	/**
+	 * Initialize credits list. Called during startup.
+	 */
+	public static void initializeCredits() {
 		credits.add(new CreditsSlot("Anonymous", "", 99, 99, 99, 99));
 		
 		
@@ -468,71 +428,50 @@ public class Main extends Application {
 		credits.add(new CreditsSlot("Zaya", "", 0, 0, 5, 0));
 		credits.add(new CreditsSlot("Zero_One", "", 0, 0, 4, 0));
 		
-		
-		
 		credits.sort(Comparator.comparing((CreditsSlot a) -> a.getName().toLowerCase()));
-		
-		
-		Main.primaryStage = primaryStage;
-		
-		Main.primaryStage.focusedProperty().addListener(new ChangeListener<Boolean>() {
-			@Override
-			public void changed(ObservableValue<? extends Boolean> ov, Boolean t, Boolean t1) {
-				if(t) {
-					TooltipUpdateThread.cancelThreads = true;
-				}
-			}
-		});
-
-		WINDOW_IMAGE = new Image("/com/lilithsthrone/res/images/windowIcon32.png");
-
-		Main.primaryStage.getIcons().add(WINDOW_IMAGE);
-
-		refreshTitle();
-
-		loadFonts();
-		
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/lilithsthrone/res/fxml/main.fxml"));
-
-		Pane pane = loader.load();
-
-		mainScene = new Scene(pane);
-
-		if (properties.hasValue(PropertyValue.lightTheme)) {
-			mainScene.getStylesheets().add("/com/lilithsthrone/res/css/stylesheet_light.css");
-		} else {
-			mainScene.getStylesheets().add("/com/lilithsthrone/res/css/stylesheet.css");
-		}
-
-		mainController = loader.getController();
-		Main.primaryStage.setScene(mainScene);
-		Main.primaryStage.show();
-		Main.game = new Game();
-		Main.sex = new Sex();
-		Main.combat = new Combat();
-		
-		loader = new FXMLLoader(getClass().getResource("/com/lilithsthrone/res/fxml/main.fxml"));
-		try {
-			if (Main.mainScene == null) {
-				pane = loader.load();
-				Main.mainController = loader.getController();
-
-				Main.mainScene = new Scene(pane);
-				if (Main.getProperties().hasValue(PropertyValue.lightTheme))
-					Main.mainScene.getStylesheets().add("/com/lilithsthrone/res/css/stylesheet_light.css");
-				else
-					Main.mainScene.getStylesheets().add("/com/lilithsthrone/res/css/stylesheet.css");
-			}
-
-			Main.primaryStage.setScene(Main.mainScene);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		Main.game.setContent(new Response("", "", OptionsDialogue.MENU));
-		
 	}
+	
+	/**
+	 * Initialize LibGDX application for cross-platform rendering.
+	 * This replaces all the JavaFX Stage/Scene/WebView setup.
+	 */
+	private static void initializeLibGDX() {
+		try {
+			// Create LibGDX app (creates LogicLayerAPI internally)
+			com.lilithsthrone.ui.LibGdxApp gdxApp = new com.lilithsthrone.ui.LibGdxApp();
+			
+			// Create LibGDX config
+			com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration config = 
+				new com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration();
+			config.setWindowedMode(1200, 800);
+			config.setTitle("Lilith's Throne - " + VERSION_NUMBER);
+			config.setForegroundFPS(60);
+			config.setIdleFPS(60);
+			config.setResizable(true);
+			
+			// Launch LibGDX application
+			new com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application(gdxApp, config);
+			
+			// Initialize game objects after LibGDX context
+			Main.game = new Game();
+			Main.sex = new Sex();
+			Main.combat = new Combat();
+			
+			System.out.println("[Main] LibGDX application initialized successfully");
+			
+		} catch (Exception e) {
+			System.err.println("[Main] ERROR: Failed to initialize LibGDX: " + e.getMessage());
+			e.printStackTrace();
+			// Use Gdx.app.exit() if available, otherwise fall back to System.exit
+			// This handles both desktop (LWJGL) and Android
+			try {
+				com.badlogic.gdx.Gdx.app.exit();
+			} catch (Exception ex) {
+				System.exit(1);
+			}
+		}
+	}
+
 	
 	public static boolean CheckNotUnpacked() {
 		File dir = new File("");
@@ -546,66 +485,33 @@ public class Main extends Application {
 	protected static void CheckForDataDirectory() {
 		File dir = gameStorage.getBaseGameDirectory();
 		if(!dir.exists()) {
-			Alert a = new Alert(AlertType.ERROR,
-					"Unable to find the game data folder ("+dir.getAbsolutePath()+"). Saving and error logging is disabled."
-							+ "\nMake sure that you've extracted the game from the zip file, and that the file has write permissions."
-							+ "\n(Please read section 'MISSING FOLDERS' in the README.txt file.)"
-							+ "\nContinue?",
-					ButtonType.YES, ButtonType.NO);
-			System.err.println("Unable to find the game data folder ("+dir.getAbsolutePath()+").");
-			a.showAndWait().ifPresent(response -> {
-			     if (response == ButtonType.NO) {
-			         System.exit(1);
-			     }
-			 });
+			System.err.println("ERROR: Unable to find the game data folder ("+dir.getAbsolutePath()+").");
+			System.err.println("Saving and error logging is disabled.");
+			System.err.println("Make sure that you've extracted the game from the zip file, and that the file has write permissions.");
+			System.err.println("Please read section 'MISSING FOLDERS' in the README.txt file.");
+			// Use Gdx.app.exit() if available, otherwise fall back to System.exit
+			try {
+				com.badlogic.gdx.Gdx.app.exit();
+			} catch (Exception ex) {
+				System.exit(1);
+			}
 		}
 	}
 	
 	protected static void CheckForResFolder() {
 		File dir = new File("res/");
 		if(!dir.exists()) {
-			Alert a = new Alert(AlertType.WARNING,
-					"Could not find the 'res' folder ("+dir.getAbsolutePath()+"). This WILL cause errors and present sections of missing text."
-							+ "\nMake sure that you've extracted the game from the zip file, and that the file has write permissions."
-							+ "\nIf you use the command line or a batch/script file to start the game, please try starting it in the game folder to prevent this error."
-							+ "\n(Please read section 'MISSING FOLDERS' in the README.txt file.)"
-							+ "\nContinue?",
-					ButtonType.YES, ButtonType.NO);
-			System.err.println("Unable to find the 'res' folder ("+dir.getAbsolutePath()+").");
-			a.showAndWait().ifPresent(response -> {
-				if(response == ButtonType.NO) {
-					System.exit(1);
-				}
-			});
-		}
-	}
-
-	/**
-	 * Attempts to load fallback fonts to make sure that they are available later. The size doesn't actually matter as
-	 * the WebEngine will reload other sizes as required. The files referenced must persist until application shutdown.
-	 *
-	 * Do not call Font.getFamilies() prior to this as additional fonts must be loaded before the list is cached.
-	 */
-	protected void loadFonts() {
-		// Load fallback for Calibri
-		if (Font.loadFont(toUri("res/fonts/Carlito/Carlito-Regular.ttf"), 11) != null) {
-			// Load variants
-			Font.loadFont(toUri("res/fonts/Carlito/Carlito-Bold.ttf"), 11);
-			Font.loadFont(toUri("res/fonts/Carlito/Carlito-BoldItalic.ttf"), 11);
-			Font.loadFont(toUri("res/fonts/Carlito/Carlito-Italic.ttf"), 11);
-		} else {
-			System.err.println("Carlito font could not be loaded.");
-		}
-
-		// Load fallback for Verdana
-		if (Font.loadFont(toUri("res/fonts/DejaVu Sans/DejaVuSans.ttf"), 12) != null) {
-			// Load variants
-			Font.loadFont(toUri("res/fonts/DejaVu Sans/DejaVuSans-Bold.ttf"), 12);
-			Font.loadFont(toUri("res/fonts/DejaVu Sans/DejaVuSans-BoldOblique.ttf"), 12);
-			Font.loadFont(toUri("res/fonts/DejaVu Sans/DejaVuSans-ExtraLight.ttf"), 12);
-			Font.loadFont(toUri("res/fonts/DejaVu Sans/DejaVuSans-Oblique.ttf"), 12);
-		} else {
-			System.err.println("DejaVu Sans font could not be loaded.");
+			System.err.println("ERROR: Could not find the 'res' folder ("+dir.getAbsolutePath()+").");
+			System.err.println("This WILL cause errors and present sections of missing text.");
+			System.err.println("Make sure that you've extracted the game from the zip file, and that the file has write permissions.");
+			System.err.println("If you use the command line or a batch/script file to start the game, please try starting it in the game folder to prevent this error.");
+			System.err.println("Please read section 'MISSING FOLDERS' in the README.txt file.");
+			// Use Gdx.app.exit() if available, otherwise fall back to System.exit
+			try {
+				com.badlogic.gdx.Gdx.app.exit();
+			} catch (Exception ex) {
+				System.exit(1);
+			}
 		}
 	}
 
@@ -729,7 +635,18 @@ public class Main extends Application {
 			properties.savePropertiesAsXML();
 		}
 
-		launch(args);
+		// Initialize binary data system for fast access
+		try {
+			com.lilithsthrone.persistence.binary.BinaryDataInitializer.initialize();
+		} catch (Exception e) {
+			System.err.println("Warning: Binary data initialization failed, falling back to standard loading: " + e.getMessage());
+		}
+		
+		// Initialize credits
+		initializeCredits();
+		
+		// Initialize LibGDX application (replaces JavaFX launch)
+		initializeLibGDX();
 	}
 	
 	/**

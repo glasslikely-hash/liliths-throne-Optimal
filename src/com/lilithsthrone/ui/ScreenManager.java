@@ -69,6 +69,41 @@ public class ScreenManager {
     }
 
     /**
+     * Set the active screen by string name (for convenience).
+     */
+    public void setScreen(String screenName) {
+        try {
+            ScreenType screenType = ScreenType.valueOf(screenName.toUpperCase().replace("-", "_"));
+            setScreen(screenType);
+        } catch (IllegalArgumentException e) {
+            // Handle string-based names for backwards compatibility
+            switch (screenName.toLowerCase()) {
+                case "menu":
+                case "main_menu":
+                    setScreen(ScreenType.MAIN_MENU);
+                    break;
+                case "game":
+                    setScreen(ScreenType.GAME);
+                    break;
+                case "inventory":
+                    setScreen(ScreenType.INVENTORY);
+                    break;
+                case "settings":
+                    setScreen(ScreenType.SETTINGS_MENU);
+                    break;
+                case "save":
+                    setScreen(ScreenType.SAVE_GAME_MENU);
+                    break;
+                case "load":
+                    setScreen(ScreenType.LOAD_GAME_MENU);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown screen: " + screenName);
+            }
+        }
+    }
+
+    /**
      * Set the active screen with a transition effect.
      */
     public void setScreenWithTransition(ScreenType screenType, Transition transition) {
@@ -178,24 +213,20 @@ public class ScreenManager {
         switch (screenType) {
             case MAIN_MENU:
                 return new MainMenuScreen(batch, camera, logicLayerAPI, this);
-            case NEW_GAME_MENU:
-                return new NewGameMenuScreen(batch, camera, logicLayerAPI, this);
-            case LOAD_GAME_MENU:
-                return new LoadGameMenuScreen(batch, camera, logicLayerAPI, this);
-            case SETTINGS_MENU:
-                return new SettingsMenuScreen(batch, camera, logicLayerAPI, this);
             case GAME:
                 return new GameScreen(batch, camera, logicLayerAPI, this);
-            case INVENTORY:
-                return new InventoryScreen(batch, camera, logicLayerAPI, this);
-            case CHARACTER:
-                return new CharacterScreen(batch, camera, logicLayerAPI, this);
-            case MAP:
-                return new MapScreen(batch, camera, logicLayerAPI, this);
-            case PAUSE_MENU:
-                return new PauseMenuScreen(batch, camera, logicLayerAPI, this);
             case SAVE_GAME_MENU:
-                return new SaveGameMenuScreen(batch, camera, logicLayerAPI, this);
+                return new SaveLoadScreen(batch, camera, this, logicLayerAPI, true);
+            case LOAD_GAME_MENU:
+                return new SaveLoadScreen(batch, camera, this, logicLayerAPI, false);
+            case SETTINGS_MENU:
+            case NEW_GAME_MENU:
+            case INVENTORY:
+            case CHARACTER:
+            case MAP:
+            case PAUSE_MENU:
+                // TODO: Implement other screens
+                return new MainMenuScreen(batch, camera, logicLayerAPI, this);
             default:
                 throw new IllegalArgumentException("Unknown screen type: " + screenType);
         }

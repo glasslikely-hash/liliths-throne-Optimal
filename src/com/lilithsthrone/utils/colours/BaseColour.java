@@ -2,8 +2,6 @@ package com.lilithsthrone.utils.colours;
 
 import com.lilithsthrone.utils.Util;
 
-import javafx.scene.paint.Color;
-
 /**
  * @since 0.1.69
  * @version 0.4

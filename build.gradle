@@ -1,0 +1,58 @@
+// Root build configuration for cross-platform builds
+// Supports: Desktop (Maven/pom.xml) and Android (Gradle)
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.4.2'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://maven.badlogicgames.com/" }
+    }
+    
+    ext {
+        gdxVersion = "1.12.0"
+        androidGradlePluginVersion = "7.4.2"
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
+// Convenience tasks for building both platforms
+task buildDesktop {
+    doLast {
+        println "Building desktop JAR..."
+        exec {
+            commandLine 'mvn', 'clean', 'package', '-DskipTests'
+        }
+    }
+}
+
+task buildAndroid {
+    doLast {
+        println "Building Android APK..."
+        exec {
+            commandLine './android/gradlew', '-p', 'android', 'clean', 'assembleDebug'
+        }
+    }
+}
+
+task buildAll {
+    dependsOn buildDesktop, buildAndroid
+    doLast {
+        println "Build complete! Both desktop JAR and Android APK ready."
+    }
+}
+
+defaultTasks 'buildAll'

@@ -16,6 +16,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.lilithsthrone.controller.xmlParsing.XMLUtil;
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.game.character.GameCharacter;
 import com.lilithsthrone.game.character.body.Arm;
 import com.lilithsthrone.game.character.body.CoverableArea;
@@ -389,6 +390,12 @@ public class CharacterInventory implements XMLSaving {
 		if(nodes.getLength()>0 && nodes.item(0)!=null) {
 			NodeList itemsInInventory = ((Element) nodes.item(0)).getElementsByTagName("item");
 			Map<AbstractItem, Integer> itemMapToAdd = new HashMap<>();
+			
+			// Phase 3 migration: Get item type references from DataStore
+			AbstractItemType condomUsedType = DataStore.getInstance().getItemType("innoxia_item_condom_used");
+			AbstractItemType condomUsedWebbingType = DataStore.getInstance().getItemType("innoxia_item_condom_used_webbing");
+			AbstractItemType mooMilkerFullType = DataStore.getInstance().getItemType("moo_milker_full");
+			
 			for(int i=0; i<itemsInInventory.getLength(); i++){
 				Element e = ((Element)itemsInInventory.item(i));
 				
@@ -397,10 +404,11 @@ public class CharacterInventory implements XMLSaving {
 				if(id.equals("GIFT_ROSE")) { // Changed the rose to a clothing item in v0.3.5.5
 					inventory.addClothing(Main.game.getItemGen().generateClothing("innoxia_hair_rose", PresetColour.CLOTHING_RED_DARK, PresetColour.CLOTHING_GREEN_DARK, null, false), count);
 					
-				} else if(id.equals(ItemType.getIdFromItemType(ItemType.CONDOM_USED)) || id.equals(ItemType.getIdFromItemType(ItemType.CONDOM_USED_WEBBING))) {
+				} else if((condomUsedType != null && id.equals(condomUsedType.getId())) 
+						|| (condomUsedWebbingType != null && id.equals(condomUsedWebbingType.getId()))) {
 					itemMapToAdd.put(AbstractFilledCondom.loadFromXML(e, doc), count);
 					
-				} else if(id.equals(ItemType.getIdFromItemType(ItemType.MOO_MILKER_FULL))) {
+				} else if(mooMilkerFullType != null && id.equals(mooMilkerFullType.getId())) {
 					itemMapToAdd.put(AbstractFilledBreastPump.loadFromXML(e, doc), count);
 					
 				} else {

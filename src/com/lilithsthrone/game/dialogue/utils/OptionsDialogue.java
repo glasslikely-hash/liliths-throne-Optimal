@@ -203,9 +203,10 @@ public class OptionsDialogue {
 				return new ResponseEffectsOnly("Quit", "Quits your current game and closes the program.<br/><br/><b>Remember to save your game first!</b>"){
 					@Override
 					public void effects() {
-						Main.primaryStage.close();
 						confirmNewGame=false;
-						System.exit(0);
+						// Use Gdx.app.exit() instead of System.exit() for cross-platform compatibility
+						// Works on desktop (LWJGL) and Android
+						com.badlogic.gdx.Gdx.app.exit();
 					}
 				};
 				

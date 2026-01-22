@@ -1,7 +1,9 @@
 package com.lilithsthrone.logic.engines;
 
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.logic.persistence.DeltaEngine;
 import com.lilithsthrone.logic.state.GameState;
+import com.lilithsthrone.utils.logging.LogManager;
 
 /**
  * Abstract base class for all game mechanics engines.
@@ -105,7 +107,7 @@ class CombatEngine extends BaseEngine {
     @Override
     public void initialize() {
         super.initialize();
-        System.out.println("[" + ENGINE_NAME + "] Initialized");
+        LogManager.info(ENGINE_NAME, "Initialized");
     }
 
     @Override
@@ -119,11 +121,20 @@ class CombatEngine extends BaseEngine {
 
     /**
      * Initiate combat with enemies
+     * Validates that all NPC IDs exist in the system before starting combat
      */
     public void initiateCombat(String[] enemyIds) {
         if (gameState.isInCombat()) {
-            System.out.println("[" + ENGINE_NAME + "] Already in combat!");
+            LogManager.warn(ENGINE_NAME, "Already in combat!");
             return;
+        }
+
+        // Validate all enemy IDs exist
+        for (String enemyId : enemyIds) {
+            if (gameState.getNpcState(enemyId) == null) {
+                LogManager.error(ENGINE_NAME, "Invalid enemy NPC ID: " + enemyId);
+                return;
+            }
         }
 
         com.lilithsthrone.logic.state.CombatState combatState = 
@@ -135,15 +146,13 @@ class CombatEngine extends BaseEngine {
 
         // Add enemies
         for (String enemyId : enemyIds) {
-            if (gameState.getNpcState(enemyId) != null) {
-                com.lilithsthrone.logic.state.NpcState npcState = gameState.getNpcState(enemyId);
-                combatState.addCombatant(enemyId, npcState.getCurrentHealth());
-            }
+            com.lilithsthrone.logic.state.NpcState npcState = gameState.getNpcState(enemyId);
+            combatState.addCombatant(enemyId, npcState.getCurrentHealth());
         }
 
         gameState.setCurrentCombatState(combatState);
         recordChange("combatState", "COMBAT_STARTED");
-        System.out.println("[" + ENGINE_NAME + "] Combat initiated with " + enemyIds.length + " enemies");
+        LogManager.info(ENGINE_NAME, "Combat initiated with " + enemyIds.length + " enemies");
     }
 
     /**
@@ -151,6 +160,7 @@ class CombatEngine extends BaseEngine {
      */
     public void takeDamage(String combatantId, int damage) {
         if (!gameState.isInCombat()) {
+            LogManager.warn(ENGINE_NAME, "Not in combat, cannot take damage");
             return;
         }
 
@@ -165,11 +175,13 @@ class CombatEngine extends BaseEngine {
             if (npcState != null) {
                 npcState.setStatus("DEAD");
                 recordChange("npcStatus_" + combatantId, "DEAD");
+            } else {
+                LogManager.warn(ENGINE_NAME, "NPC state not found for defeated enemy: " + combatantId);
             }
         }
 
         recordChange("health_" + combatantId, newHealth);
-        System.out.println("[" + ENGINE_NAME + "] " + combatantId + " takes " + damage + " damage (now " + newHealth + " hp)");
+        LogManager.info(ENGINE_NAME, combatantId + " takes " + damage + " damage (now " + newHealth + " hp)");
     }
 
     /**
@@ -177,6 +189,7 @@ class CombatEngine extends BaseEngine {
      */
     public void endCombat(boolean playerVictory) {
         if (!gameState.isInCombat()) {
+            LogManager.warn(ENGINE_NAME, "Not in combat, cannot end combat");
             return;
         }
 
@@ -188,16 +201,18 @@ class CombatEngine extends BaseEngine {
             int xpReward = 100; // Simplified
             gameState.getPlayerState().addExperience(xpReward);
             recordChange("playerExperience", gameState.getPlayerState().getExperiencePoints());
+            LogManager.info(ENGINE_NAME, "Combat victory! " + xpReward + " XP awarded");
         } else {
             // Penalty for loss (heal at inn, etc.)
             gameState.getPlayerState().setCurrentHealth(gameState.getPlayerState().getMaxHealth() / 2);
             recordChange("playerHealth", gameState.getPlayerState().getCurrentHealth());
+            LogManager.info(ENGINE_NAME, "Combat defeat! Health reduced to 50%");
         }
 
         // Clear combat state
         gameState.setCurrentCombatState(null);
         recordChange("combatState", "COMBAT_ENDED");
-        System.out.println("[" + ENGINE_NAME + "] Combat ended, player " + (playerVictory ? "VICTORY" : "DEFEAT"));
+        LogManager.info(ENGINE_NAME, "Combat ended, player " + (playerVictory ? "VICTORY" : "DEFEAT"));
     }
 
     /**
@@ -224,7 +239,7 @@ class CombatEngine extends BaseEngine {
         if (gameState.isInCombat()) {
             endCombat(false);
         }
-        System.out.println("[" + ENGINE_NAME + "] Shutdown");
+        LogManager.info(ENGINE_NAME, "Shutdown");
     }
 }
 
@@ -258,7 +273,7 @@ class InventoryEngine extends BaseEngine {
     @Override
     public void initialize() {
         super.initialize();
-        System.out.println("[" + ENGINE_NAME + "] Initialized");
+        LogManager.info(ENGINE_NAME, "Initialized");
     }
 
     @Override
@@ -268,9 +283,17 @@ class InventoryEngine extends BaseEngine {
 
     /**
      * Add item to inventory
+     * Validates that the item ID exists in the binary data store
      */
     public boolean addItem(String itemId, int quantity) {
         if (quantity <= 0) {
+            LogManager.warn(ENGINE_NAME, "Cannot add item with quantity <= 0: " + itemId);
+            return false;
+        }
+
+        // Validate item exists in DataStore (binary-backed game data)
+        if (DataStore.getInstance().getItem(itemId) == null) {
+            LogManager.error(ENGINE_NAME, "Invalid item ID (not in DataStore): " + itemId);
             return false;
         }
 
@@ -279,13 +302,13 @@ class InventoryEngine extends BaseEngine {
         int maxSlots = gameState.getInventoryState().getMaxInventorySlots();
 
         if (usedSlots + quantity > maxSlots) {
-            System.out.println("[" + ENGINE_NAME + "] Inventory full!");
+            LogManager.warn(ENGINE_NAME, "Inventory full! Need " + quantity + " slots but only " + (maxSlots - usedSlots) + " available");
             return false;
         }
 
         gameState.getInventoryState().addItem(itemId, quantity);
         recordChange("inventory_add_" + itemId, quantity);
-        System.out.println("[" + ENGINE_NAME + "] Added " + quantity + "x " + itemId);
+        LogManager.info(ENGINE_NAME, "Added " + quantity + "x " + itemId + " to inventory");
         return true;
     }
 
@@ -293,29 +316,43 @@ class InventoryEngine extends BaseEngine {
      * Remove item from inventory
      */
     public boolean removeItem(String itemId, int quantity) {
-        if (gameState.getInventoryState().getItems().getOrDefault(itemId, 0) < quantity) {
-            System.out.println("[" + ENGINE_NAME + "] Not enough " + itemId);
+        if (quantity <= 0) {
+            LogManager.warn(ENGINE_NAME, "Cannot remove item with quantity <= 0: " + itemId);
+            return false;
+        }
+
+        int currentQuantity = gameState.getInventoryState().getItems().getOrDefault(itemId, 0);
+        if (currentQuantity < quantity) {
+            LogManager.warn(ENGINE_NAME, "Not enough " + itemId + " (have " + currentQuantity + ", need " + quantity + ")");
             return false;
         }
 
         gameState.getInventoryState().removeItem(itemId, quantity);
         recordChange("inventory_remove_" + itemId, quantity);
-        System.out.println("[" + ENGINE_NAME + "] Removed " + quantity + "x " + itemId);
+        LogManager.info(ENGINE_NAME, "Removed " + quantity + "x " + itemId + " from inventory");
         return true;
     }
 
     /**
      * Equip an item to a body slot
+     * Validates that the item is in inventory and is a valid item type
      */
     public boolean equip(String bodySlot, String itemId) {
+        // Validate item exists in inventory
         if (!gameState.getInventoryState().getItems().containsKey(itemId)) {
-            System.out.println("[" + ENGINE_NAME + "] Item not in inventory: " + itemId);
+            LogManager.warn(ENGINE_NAME, "Item not in inventory: " + itemId);
+            return false;
+        }
+
+        // Validate item exists in DataStore (binary-backed game data)
+        if (DataStore.getInstance().getItem(itemId) == null) {
+            LogManager.error(ENGINE_NAME, "Invalid item ID (not in DataStore): " + itemId);
             return false;
         }
 
         gameState.getInventoryState().getEquippedItems().put(bodySlot, itemId);
         recordChange("equipped_" + bodySlot, itemId);
-        System.out.println("[" + ENGINE_NAME + "] Equipped " + itemId + " to " + bodySlot);
+        LogManager.info(ENGINE_NAME, "Equipped " + itemId + " to " + bodySlot);
         return true;
     }
 
@@ -351,7 +388,7 @@ class InventoryEngine extends BaseEngine {
     @Override
     public void shutdown() {
         super.shutdown();
-        System.out.println("[" + ENGINE_NAME + "] Shutdown");
+        LogManager.info(ENGINE_NAME, "Shutdown");
     }
 }
 
@@ -383,7 +420,7 @@ class MovementEngine extends BaseEngine {
     @Override
     public void initialize() {
         super.initialize();
-        System.out.println("[" + ENGINE_NAME + "] Initialized");
+        LogManager.info(ENGINE_NAME, "Initialized");
     }
 
     @Override
@@ -393,12 +430,19 @@ class MovementEngine extends BaseEngine {
 
     /**
      * Move player to a specific location
+     * Validates that the location exists in the world state
      */
     public boolean goToLocation(String locationId) {
+        // Validate location exists (can also check DataStore if locations are there)
+        if (locationId == null || locationId.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Invalid location ID (null or empty)");
+            return false;
+        }
+        
         gameState.getPlayerState().setCurrentLocation(locationId);
         gameState.visitLocation(locationId);
         recordChange("playerLocation", locationId);
-        System.out.println("[" + ENGINE_NAME + "] Moved to " + locationId);
+        LogManager.info(ENGINE_NAME, "Moved to " + locationId);
         return true;
     }
 
@@ -408,12 +452,12 @@ class MovementEngine extends BaseEngine {
     public void unlockArea(String areaId) {
         gameState.setQuestFlag("area_unlocked_" + areaId, true);
         recordChange("areaUnlocked", areaId);
-        System.out.println("[" + ENGINE_NAME + "] Unlocked area: " + areaId);
+        LogManager.info(ENGINE_NAME, "Unlocked area: " + areaId);
     }
 
     @Override
     public void shutdown() {
         super.shutdown();
-        System.out.println("[" + ENGINE_NAME + "] Shutdown");
+        LogManager.info(ENGINE_NAME, "Shutdown");
     }
 }

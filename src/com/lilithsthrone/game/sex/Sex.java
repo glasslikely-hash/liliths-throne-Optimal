@@ -49,6 +49,7 @@ import com.lilithsthrone.game.character.fetishes.Fetish;
 import com.lilithsthrone.game.character.npc.NPC;
 import com.lilithsthrone.game.character.pregnancy.FertilisationType;
 import com.lilithsthrone.game.character.quests.QuestLine;
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.game.dialogue.DialogueFlagValue;
 import com.lilithsthrone.game.dialogue.DialogueNode;
 import com.lilithsthrone.game.dialogue.companions.CompanionManagement;
@@ -1472,10 +1473,11 @@ public class Sex {
 				endSexSB.append(getEndSexStretchingDescription(participant));
 				
 				if(getHeavyLipstickUsedCharacter().contains(participant)) {
-					if(participant.hasItemType(ItemType.MAKEUP_SET)) {
-						endSexSB.append("<p style='text-align:center'><i>Your [style.italicsPinkDeep(heavy layer)] of lipstick has worn off, but you have "
-								+ ItemType.MAKEUP_SET.getName(true, false)
-								+ ", so you take a few moments to [style.italicsGood(re-apply)] your [style.italicsPinkDeep(heavy layer)] of lipstick.</i></p>");
+				// Phase 3 migration: Get MAKEUP_SET from DataStore
+				AbstractItemType makeupSetType = DataStore.getInstance().getItemType("innoxia_item_makeup_set");
+				if(participant.hasItemType(makeupSetType != null ? makeupSetType : ItemType.MAKEUP_SET)) {
+					endSexSB.append("<p style='text-align:center'><i>Your [style.italicsPinkDeep(heavy layer)] of lipstick has worn off, but you have "
+							+ (makeupSetType != null ? makeupSetType.getName(true, false) : ItemType.MAKEUP_SET.getName(true, false))
 					} else {
 						participant.removeHeavyMakeup(BodyCoveringType.MAKEUP_LIPSTICK);
 						endSexSB.append("<p style='text-align:center'><i>Your [style.italicsPinkDeep(heavy layer)] of lipstick has [style.italicsBad(worn off)]!</i></p>");
@@ -1612,9 +1614,11 @@ public class Sex {
 				endSexSB.append(getEndSexStretchingDescription(participant));
 
 				if(getHeavyLipstickUsedCharacter().contains(participant)) {
-					if(participant.hasItemType(ItemType.MAKEUP_SET)) {
+					// Phase 3 migration: Get MAKEUP_SET from DataStore
+					AbstractItemType makeupSetType = DataStore.getInstance().getItemType("innoxia_item_makeup_set");
+					if(participant.hasItemType(makeupSetType != null ? makeupSetType : ItemType.MAKEUP_SET)) {
 						endSexSB.append("<p style='text-align:center'><i>[npc.NamePos] [style.italicsPinkDeep(heavy layer)] of lipstick has worn off, but [npc.she] [npc.has] "
-								+ ItemType.MAKEUP_SET.getName(true, false)
+								+ (makeupSetType != null ? makeupSetType.getName(true, false) : ItemType.MAKEUP_SET.getName(true, false))
 								+ ", so [npc.she] [npc.verb(take)] a few moments to [style.italicsGood(reapply)] [npc.her] [style.italicsPinkDeep(heavy layer)] of lipstick.</i></p>");
 					} else {
 						participant.removeHeavyMakeup(BodyCoveringType.MAKEUP_LIPSTICK);
@@ -1968,10 +1972,20 @@ public class Sex {
 				} else if(responseTab==4 && !playerUniqueActions) { // Cannot use repeat actions when there are unique actions.
 					List<SexActionInterface> availableRepeatActionsPlayer = new LinkedList<>();
 					availableRepeatActionsPlayer.addAll(repeatActionsPlayer);
-					availableRepeatActionsPlayer.removeIf(sa-> !miscActionsPlayer.contains(sa) && !selfActionsPlayer.contains(sa) && !sexActionsPlayer.contains(sa));
-					availableRepeatActionsPlayer.removeIf(sa-> !sa.isAddedToAvailableSexActions());
-					availableRepeatActionsPlayer.removeIf(sa-> !sa.isBaseRequirementsMet());
-					availableRepeatActionsPlayer.removeIf(sa-> !sa.toResponse().isAvailable() && !sa.toResponse().isAbleToBypass());
+					availableRepeatActionsPlayer.removeIf(sa -> {
+						return !miscActionsPlayer.contains(sa) && !selfActionsPlayer.contains(sa) && !sexActionsPlayer.contains(sa);
+					});
+					availableRepeatActionsPlayer.removeIf(sa -> {
+						return !sa.isAddedToAvailableSexActions();
+					});
+					availableRepeatActionsPlayer.removeIf(sa -> {
+						return !sa.isBaseRequirementsMet();
+					});
+					availableRepeatActionsPlayer.removeIf(sa -> {
+						boolean isNotAvailable = !sa.toResponse().isAvailable();
+						boolean isNotAbleToBypass = !sa.toResponse().isAbleToBypass();
+						return isNotAvailable && isNotAbleToBypass;
+					});
 					Collections.reverse(availableRepeatActionsPlayer);
 					if(index <= availableRepeatActionsPlayer.size()) {
 						if(index==0) {
@@ -2891,15 +2905,16 @@ public class Sex {
 				if(sexAction.getCondomFailure(activeCharacter, targetCharacter)==CondomFailure.NONE) {
 					Main.sex.getCharacterPerformingAction().getClothingInSlot(InventorySlot.PENIS).setSealed(false);
 					if(Main.sex.getCharacterPerformingAction().getPenisRawOrgasmCumQuantity()>0 && Main.sex.isSpectator(Main.sex.getCharacterPerformingAction())==Main.sex.isSpectator(Main.game.getPlayer())) {
-						stringBuilderForAppendingDescriptions.append(Main.game.getPlayer().addItem(
-								Main.game.getItemGen().generateFilledCondom(
-										Main.sex.getCharacterPerformingAction().getClothingInSlot(InventorySlot.PENIS).getClothingType().equals(ClothingType.getClothingTypeFromId("innoxia_penis_condom_webbing"))
-											?ItemType.CONDOM_USED_WEBBING
-											:ItemType.CONDOM_USED,
-										Main.sex.getCharacterPerformingAction().getClothingInSlot(InventorySlot.PENIS).getColour(0),
-										Main.sex.getCharacterPerformingAction(), Main.sex.getCharacterPerformingAction().getCum(), Main.sex.getCharacterPerformingAction().getPenisRawOrgasmCumQuantity()),
-								false, true));
-					}
+					// Phase 3 migration: Get condom types from DataStore
+					AbstractItemType condomUsedWebbingType = DataStore.getInstance().getItemType("innoxia_item_condom_used_webbing");
+					AbstractItemType condomUsedType = DataStore.getInstance().getItemType("innoxia_item_condom_used");
+					AbstractClothingType webCondomType = DataStore.getInstance().getClothingType("innoxia_penis_condom_webbing");
+					
+					stringBuilderForAppendingDescriptions.append(Main.game.getPlayer().addItem(
+							Main.game.getItemGen().generateFilledCondom(
+									Main.sex.getCharacterPerformingAction().getClothingInSlot(InventorySlot.PENIS).getClothingType().equals(webCondomType != null ? webCondomType : ClothingType.getClothingTypeFromId("innoxia_penis_condom_webbing"))
+										?(condomUsedWebbingType != null ? condomUsedWebbingType : ItemType.CONDOM_USED_WEBBING)
+										:(condomUsedType != null ? condomUsedType : ItemType.CONDOM_USED),
 					Main.sex.stopAllOngoingActions(Main.sex.getCharacterPerformingAction(), SexAreaPenetration.PENIS);
 				}
 				Main.sex.getCharacterPerformingAction().unequipClothingIntoVoid(Main.sex.getCharacterPerformingAction().getClothingInSlot(InventorySlot.PENIS), true, Main.sex.getCharacterPerformingAction());

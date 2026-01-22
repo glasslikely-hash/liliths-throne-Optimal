@@ -136,4 +136,46 @@ public interface UIManager {
 	 */
 	String getPlatformName();
 
+	/**
+	 * Render current content to screen.
+	 * Called every frame to display the game.
+	 * For text-based rendering, only renders when content changes.
+	 * 
+	 * Default: Does nothing (used by LibGdxUIManager)
+	 */
+	default void render() {
+		// Override in text-based implementations
+	}
+
+	/**
+	 * Handle mouse click input.
+	 * Routes clicks to the appropriate game logic handler.
+	 * 
+	 * @param screenX X coordinate of click (in screen space)
+	 * @param screenY Y coordinate of click (in screen space)
+	 */
+	default void mousePressed(float screenX, float screenY) {
+		// Override in implementations that handle direct mouse input
+	}
+
+	/**
+	 * Handle mouse movement for hover effects.
+	 * 
+	 * @param screenX X coordinate of mouse
+	 * @param screenY Y coordinate of mouse
+	 */
+	default void mouseMoved(float screenX, float screenY) {
+		// Override in implementations that handle hover
+	}
+
+	/**
+	 * Set screen dimensions (for window resize handling).
+	 * 
+	 * @param width Screen width in pixels
+	 * @param height Screen height in pixels
+	 */
+	default void setScreenSize(int width, int height) {
+		// Override in text-based implementations
+	}
+
 }

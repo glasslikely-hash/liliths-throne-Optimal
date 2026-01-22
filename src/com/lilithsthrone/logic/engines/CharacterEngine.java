@@ -1,7 +1,9 @@
 package com.lilithsthrone.logic.engines;
 
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.logic.persistence.DeltaEngine;
 import com.lilithsthrone.logic.state.GameState;
+import com.lilithsthrone.utils.logging.LogManager;
 import java.util.*;
 
 /**
@@ -40,7 +42,7 @@ public class CharacterEngine extends BaseEngine {
     public void initialize() {
         super.initialize();
         calculateStats();
-        System.out.println("[" + ENGINE_NAME + "] Initialized");
+        LogManager.info(ENGINE_NAME, "Initialized");
     }
     
     @Override
@@ -50,6 +52,11 @@ public class CharacterEngine extends BaseEngine {
     }
     
     public void gainExperience(int amount) {
+        if (amount <= 0) {
+            LogManager.warn(ENGINE_NAME, "Cannot gain experience with amount <= 0");
+            return;
+        }
+        
         long currentExp = gameState.getPlayerState().getExperiencePoints();
         long newExp = currentExp + amount;
         gameState.getPlayerState().setExperiencePoints(newExp);
@@ -64,7 +71,7 @@ public class CharacterEngine extends BaseEngine {
         }
         
         recordChange("playerExperience", amount);
-        System.out.println("[" + ENGINE_NAME + "] Experience gained: " + amount + " (total: " + newExp + ")");
+        LogManager.info(ENGINE_NAME, "Experience gained: " + amount + " (total: " + newExp + ")");
     }
     
     public void levelUp() {
@@ -81,22 +88,32 @@ public class CharacterEngine extends BaseEngine {
         
         recordChange("playerLevel", newLevel);
         recordChange("attributePoints", attributePoints);
-        System.out.println("[" + ENGINE_NAME + "] Level up! New level: " + newLevel + " (" + attributePoints + " attribute points gained)");
+        LogManager.info(ENGINE_NAME, "Level up! New level: " + newLevel + " (" + attributePoints + " attribute points gained)");
     }
     
     public void modifyAttribute(String attributeId, int delta) {
+        if (attributeId == null || attributeId.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Cannot modify attribute with null/empty ID");
+            return;
+        }
+        
         int currentValue = getAttributeValue(attributeId);
         int newValue = Math.max(1, currentValue + delta);
         // Would set attribute in GameState
         recordChange("attribute_" + attributeId, newValue);
         calculateStats();
-        System.out.println("[" + ENGINE_NAME + "] Attribute modified: " + attributeId + " -> " + newValue);
+        LogManager.info(ENGINE_NAME, "Attribute modified: " + attributeId + " -> " + newValue);
     }
     
     public void learnSkill(String skillId) {
+        if (skillId == null || skillId.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Cannot learn skill with null/empty ID");
+            return;
+        }
+        
         // Add skill to player's skill list
         recordChange("skill_" + skillId, 1);
-        System.out.println("[" + ENGINE_NAME + "] Skill learned: " + skillId);
+        LogManager.info(ENGINE_NAME, "Skill learned: " + skillId);
     }
     
     public void calculateStats() {
@@ -128,6 +145,6 @@ public class CharacterEngine extends BaseEngine {
     @Override
     public void shutdown() {
         super.shutdown();
-        System.out.println("[" + ENGINE_NAME + "] Shutdown");
+        LogManager.info(ENGINE_NAME, "Shutdown");
     }
 }

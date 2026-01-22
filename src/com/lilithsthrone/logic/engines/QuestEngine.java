@@ -1,7 +1,9 @@
 package com.lilithsthrone.logic.engines;
 
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.logic.persistence.DeltaEngine;
 import com.lilithsthrone.logic.state.GameState;
+import com.lilithsthrone.utils.logging.LogManager;
 import java.util.*;
 
 /**
@@ -43,7 +45,7 @@ public class QuestEngine extends BaseEngine {
         questProgress.clear();
         activeQuests.clear();
         completedQuests.clear();
-        System.out.println("[" + ENGINE_NAME + "] Initialized");
+        LogManager.info(ENGINE_NAME, "Initialized");
     }
     
     @Override
@@ -57,33 +59,46 @@ public class QuestEngine extends BaseEngine {
     }
     
     public void startQuest(String questId) {
+        if (questId == null || questId.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Cannot start quest with null/empty ID");
+            return;
+        }
+        
         if (!activeQuests.contains(questId) && !completedQuests.contains(questId)) {
             activeQuests.add(questId);
             questProgress.put(questId, 0);
             recordChange("activeQuests", questId);
-            System.out.println("[" + ENGINE_NAME + "] Quest started: " + questId);
+            LogManager.info(ENGINE_NAME, "Quest started: " + questId);
+        } else {
+            LogManager.warn(ENGINE_NAME, "Quest already active or completed: " + questId);
         }
     }
     
     public void updateQuestObjective(String questId, String objectiveId, int progress) {
-        if (activeQuests.contains(questId)) {
-            String key = questId + ":" + objectiveId;
-            questProgress.put(key, progress);
-            recordChange("questProgress", progress);
-            System.out.println("[" + ENGINE_NAME + "] Quest objective updated: " + key + " -> " + progress);
+        if (!activeQuests.contains(questId)) {
+            LogManager.warn(ENGINE_NAME, "Quest not active: " + questId);
+            return;
         }
+        
+        String key = questId + ":" + objectiveId;
+        questProgress.put(key, progress);
+        recordChange("questProgress", progress);
+        LogManager.info(ENGINE_NAME, "Quest objective updated: " + key + " -> " + progress);
     }
     
     public void completeQuest(String questId) {
-        if (activeQuests.contains(questId)) {
-            activeQuests.remove(questId);
-            completedQuests.add(questId);
-            // Award XP
-            gameState.getPlayerState().addExperience(500);
-            recordChange("completedQuests", questId);
-            recordChange("playerExperience", 500);
-            System.out.println("[" + ENGINE_NAME + "] Quest completed: " + questId + " (500 XP awarded)");
+        if (!activeQuests.contains(questId)) {
+            LogManager.warn(ENGINE_NAME, "Quest not active: " + questId);
+            return;
         }
+        
+        activeQuests.remove(questId);
+        completedQuests.add(questId);
+        // Award XP
+        gameState.getPlayerState().addExperience(500);
+        recordChange("completedQuests", questId);
+        recordChange("playerExperience", 500);
+        LogManager.info(ENGINE_NAME, "Quest completed: " + questId + " (500 XP awarded)");
     }
     
     public void abandonQuest(String questId) {
@@ -116,6 +131,6 @@ public class QuestEngine extends BaseEngine {
     public void shutdown() {
         super.shutdown();
         activeQuests.clear();
-        System.out.println("[" + ENGINE_NAME + "] Shutdown");
+        LogManager.info(ENGINE_NAME, "Shutdown");
     }
 }
