@@ -373,4 +373,51 @@ public class StaticDataBinaryEncoder {
 			return false;
 		}
 	}
+
+	/**
+	 * Encode a category to a specific output directory.
+	 * Used by BinaryDataInitializer.
+	 * 
+	 * @param category The data category to encode
+	 * @param outputDirectory Directory to write binary files to
+	 * @throws IOException If encoding fails
+	 */
+	public void encodeCategory(DataCategory category, String outputDirectory) throws IOException {
+		System.out.println("[" + ENCODER_NAME + "] Encoding " + category.description + " to " + outputDirectory);
+
+		try {
+			Path sourceDir = Paths.get("res", category.dirName);
+
+			if (!Files.exists(sourceDir)) {
+				System.out.println("[" + ENCODER_NAME + "] Source directory not found: " + sourceDir);
+				return;
+			}
+
+			// Create output directory
+			Path outputDir = Paths.get(outputDirectory, category.dirName);
+			Files.createDirectories(outputDir);
+
+			// Find and encode all source files
+			List<Path> files = new ArrayList<>();
+			try (DirectoryStream<Path> stream = Files.newDirectoryStream(sourceDir)) {
+				for (Path file : stream) {
+					if (Files.isRegularFile(file)) {
+						try {
+							encodeFile(file, outputDir, category);
+							stats.filesProcessed++;
+						} catch (Exception e) {
+							System.err.println("[" + ENCODER_NAME + "] Error encoding " + file.getFileName() + ": " + e.getMessage());
+							stats.filesFailed++;
+						}
+					}
+				}
+			}
+
+			System.out.println("[" + ENCODER_NAME + "] Encoded " + stats.filesProcessed + " files in " + category.dirName);
+
+		} catch (Exception e) {
+			System.err.println("[" + ENCODER_NAME + "] Error processing category " + category.dirName + ": " + e.getMessage());
+			throw new IOException("Failed to encode category: " + category.dirName, e);
+		}
+	}
 }

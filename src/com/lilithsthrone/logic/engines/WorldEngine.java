@@ -1,7 +1,9 @@
 package com.lilithsthrone.logic.engines;
 
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.logic.persistence.DeltaEngine;
 import com.lilithsthrone.logic.state.GameState;
+import com.lilithsthrone.utils.logging.LogManager;
 import java.util.*;
 
 /**
@@ -45,7 +47,7 @@ public class WorldEngine extends BaseEngine {
         npcStates.clear();
         npcRespawnTimes.clear();
         triggeredWorldEvents.clear();
-        System.out.println("[" + ENGINE_NAME + "] Initialized");
+        LogManager.info(ENGINE_NAME, "Initialized");
     }
     
     @Override
@@ -66,41 +68,63 @@ public class WorldEngine extends BaseEngine {
     }
     
     public void updateNpcState(String npcId, String state) {
+        if (npcId == null || npcId.isEmpty() || state == null || state.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Cannot update NPC state with null/empty NPC ID or state");
+            return;
+        }
+        
         npcStates.put(npcId, state);
         recordChange("npcState_" + npcId, state);
-        System.out.println("[" + ENGINE_NAME + "] NPC state updated: " + npcId + " -> " + state);
+        LogManager.info(ENGINE_NAME, "NPC state updated: " + npcId + " -> " + state);
     }
     
     public void triggerWorldEvent(String eventId) {
+        if (eventId == null || eventId.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Cannot trigger world event with null/empty ID");
+            return;
+        }
+        
         if (!triggeredWorldEvents.contains(eventId)) {
             triggeredWorldEvents.add(eventId);
             recordChange("worldEvent", eventId);
-            System.out.println("[" + ENGINE_NAME + "] World event triggered: " + eventId);
+            LogManager.info(ENGINE_NAME, "World event triggered: " + eventId);
             
             // Apply world-wide consequences
             // Example: event might change NPC states, unlock locations, etc.
+        } else {
+            LogManager.warn(ENGINE_NAME, "World event already triggered: " + eventId);
         }
     }
     
     public void updateLocationState(String locationId, String state) {
+        if (locationId == null || locationId.isEmpty() || state == null || state.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Cannot update location state with null/empty location ID or state");
+            return;
+        }
+        
         // Mark location with state (visited, unlocked, cleared)
         recordChange("location_" + locationId, state);
-        System.out.println("[" + ENGINE_NAME + "] Location state updated: " + locationId + " -> " + state);
+        LogManager.info(ENGINE_NAME, "Location state updated: " + locationId + " -> " + state);
     }
     
     public void respawnNpcs(String locationId) {
+        if (locationId == null || locationId.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Cannot respawn NPCs with null/empty location ID");
+            return;
+        }
+        
         // Respawn all NPCs in a location
         for (String npcId : getNpcsInLocation(locationId)) {
             respawnNpc(npcId);
         }
-        System.out.println("[" + ENGINE_NAME + "] NPCs respawned in location: " + locationId);
+        LogManager.info(ENGINE_NAME, "NPCs respawned in location: " + locationId);
     }
     
     private void respawnNpc(String npcId) {
         npcStates.put(npcId, "alive");
         npcRespawnTimes.remove(npcId);
         recordChange("npcRespawned", npcId);
-        System.out.println("[" + ENGINE_NAME + "] NPC respawned: " + npcId);
+        LogManager.info(ENGINE_NAME, "NPC respawned: " + npcId);
     }
     
     public void scheduleNpcRespawn(String npcId) {
@@ -108,7 +132,7 @@ public class WorldEngine extends BaseEngine {
         npcRespawnTimes.put(npcId, respawnTime);
         npcStates.put(npcId, "dead");
         recordChange("npcScheduledRespawn", npcId);
-        System.out.println("[" + ENGINE_NAME + "] NPC respawn scheduled: " + npcId + " in " + RESPAWN_TIME_SECONDS + " seconds");
+        LogManager.info(ENGINE_NAME, "NPC respawn scheduled: " + npcId + " in " + RESPAWN_TIME_SECONDS + " seconds");
     }
     
     public String getNpcState(String npcId) {
@@ -133,6 +157,6 @@ public class WorldEngine extends BaseEngine {
         super.shutdown();
         npcStates.clear();
         npcRespawnTimes.clear();
-        System.out.println("[" + ENGINE_NAME + "] Shutdown");
+        LogManager.info(ENGINE_NAME, "Shutdown");
     }
 }

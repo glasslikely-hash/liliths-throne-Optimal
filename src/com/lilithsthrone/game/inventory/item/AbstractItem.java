@@ -12,6 +12,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.lilithsthrone.controller.xmlParsing.XMLUtil;
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.game.character.GameCharacter;
 import com.lilithsthrone.game.character.effects.AbstractStatusEffect;
 import com.lilithsthrone.game.character.effects.EffectBenefit;
@@ -92,7 +93,8 @@ public abstract class AbstractItem extends AbstractCoreItem implements XMLSaving
 	
 	public static AbstractItem loadFromXML(Element parentElement, Document doc) {
 		try {
-			AbstractItemType it = ItemType.getItemTypeFromId(parentElement.getAttribute("id"));
+			// Phase 3 migration: Use DataStore to retrieve item type
+			AbstractItemType it = DataStore.getInstance().getItemType(parentElement.getAttribute("id"));
 			if(it==null) {
 				System.err.println("Warning: An instance of AbstractItem was unable to be imported, due to AbstractItemType not existing. ("+parentElement.getAttribute("id")+")");
 				return null;
@@ -120,13 +122,20 @@ public abstract class AbstractItem extends AbstractCoreItem implements XMLSaving
 					parentElement.getAttribute("colour").isEmpty()
 						?PresetColour.GENERIC_ARCANE
 						:PresetColour.getColourFromId(parentElement.getAttribute("colour")));
-			
-			if(!effectsToBeAdded.isEmpty()
-					&& (item.getItemType().getId().equals(ItemType.ELIXIR.getId()) || item.getItemType().getId().equals(ItemType.POTION.getId()) || item.getItemType().getId().equals(ItemType.ORIENTATION_HYPNO_WATCH.getId()))) {
-				item.setSVGString(EnchantingUtils.getImportedSVGString(item, item.getColour(0), effectsToBeAdded));
-			}
-			
-			return item;
+		
+		// Phase 3 migration: Use DataStore to retrieve item types for comparison
+		AbstractItemType elixirType = DataStore.getInstance().getItemType("innoxia_item_elixir");
+		AbstractItemType potionType = DataStore.getInstance().getItemType("innoxia_item_potion");
+		AbstractItemType orientationHypnoWatchType = DataStore.getInstance().getItemType("innoxia_item_orientation_hypno_watch");
+		
+		if(!effectsToBeAdded.isEmpty()
+				&& ((elixirType != null && item.getItemType().getId().equals(elixirType.getId()))
+					|| (potionType != null && item.getItemType().getId().equals(potionType.getId()))
+					|| (orientationHypnoWatchType != null && item.getItemType().getId().equals(orientationHypnoWatchType.getId())))) {
+			item.setSVGString(EnchantingUtils.getImportedSVGString(item, item.getColour(0), effectsToBeAdded));
+		}
+		
+		return item;
 		} catch(Exception ex) {
 			System.err.println("Warning: An instance of AbstractItem was unable to be imported. ("+parentElement.getAttribute("id")+")");
 			ex.printStackTrace();
@@ -485,7 +494,11 @@ public abstract class AbstractItem extends AbstractCoreItem implements XMLSaving
 	}
 
 	public boolean isTypeOneOf(String ... itemType) {
-		return Stream.of(itemType).anyMatch(it -> (this.getItemType().equals(ItemType.getItemTypeFromId(it))));
+		// Phase 3 migration: Use DataStore to retrieve item types for comparison
+		return Stream.of(itemType).anyMatch(it -> {
+			AbstractItemType itemTypeToCheck = DataStore.getInstance().getItemType(it);
+			return itemTypeToCheck != null && this.getItemType().equals(itemTypeToCheck);
+		});
 	}
 
 	@Override

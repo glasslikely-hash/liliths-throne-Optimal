@@ -1,0 +1,80 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdk 33
+    ndkVersion "25.1.8937393"
+
+    defaultConfig {
+        applicationId "com.lilithsthrone.game"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "0.4.11.3"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    buildFeatures {
+        viewBinding false
+        aidl false
+        renderScript false
+        resValues false
+        shaders false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            // Include both local Android-specific code and parent project sources
+            java.srcDirs = ['src', '../src/main/java', '../src']
+            aidl.srcDirs = ['src', '../src/main/java', '../src']
+            renderscript.srcDirs = ['src', '../src/main/java', '../src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+
+dependencies {
+    // LibGDX core
+    implementation "com.badlogicgames.gdx:gdx:${gdxVersion}"
+    implementation "com.badlogicgames.gdx:gdx-backend-android:${gdxVersion}"
+    implementation "com.badlogicgames.gdx:gdx-freetype:${gdxVersion}"
+    
+    // Android support
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
+    // Logging
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+    implementation 'ch.qos.logback:logback-android:2.0.0'
+}
+
+task copyResources {
+    doLast {
+        copy {
+            from "${rootDir}/../res"
+            into "assets/res"
+        }
+        copy {
+            from "${rootDir}/../data"
+            into "assets/data"
+        }
+    }
+}
+
+preBuild.dependsOn copyResources

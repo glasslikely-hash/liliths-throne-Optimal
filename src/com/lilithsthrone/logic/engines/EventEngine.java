@@ -1,7 +1,9 @@
 package com.lilithsthrone.logic.engines;
 
+import com.lilithsthrone.data.DataStore;
 import com.lilithsthrone.logic.persistence.DeltaEngine;
 import com.lilithsthrone.logic.state.GameState;
+import com.lilithsthrone.utils.logging.LogManager;
 import java.util.*;
 
 /**
@@ -43,7 +45,7 @@ public class EventEngine extends BaseEngine {
         eventFlags.clear();
         currentDialogueId = "";
         currentDialogueNode = 0;
-        System.out.println("[" + ENGINE_NAME + "] Initialized");
+        LogManager.info(ENGINE_NAME, "Initialized");
     }
     
     @Override
@@ -53,21 +55,33 @@ public class EventEngine extends BaseEngine {
     }
     
     public void triggerEvent(String eventId) {
+        if (eventId == null || eventId.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Cannot trigger event with null/empty ID");
+            return;
+        }
+        
         if (!eventFlags.getOrDefault(eventId, false)) {
             eventFlags.put(eventId, true);
             recordChange("eventFlags", eventId);
-            System.out.println("[" + ENGINE_NAME + "] Event triggered: " + eventId);
+            LogManager.info(ENGINE_NAME, "Event triggered: " + eventId);
             
             // Apply event consequences (would depend on event definition)
             // This is where branching logic would apply state changes
+        } else {
+            LogManager.warn(ENGINE_NAME, "Event already triggered: " + eventId);
         }
     }
     
     public void startDialogue(String npcId, String dialogueId) {
+        if (npcId == null || npcId.isEmpty() || dialogueId == null || dialogueId.isEmpty()) {
+            LogManager.error(ENGINE_NAME, "Cannot start dialogue with null/empty NPC or dialogue ID");
+            return;
+        }
+        
         this.currentDialogueId = npcId + ":" + dialogueId;
         this.currentDialogueNode = 0;
         recordChange("currentDialogue", currentDialogueId);
-        System.out.println("[" + ENGINE_NAME + "] Dialogue started: " + currentDialogueId);
+        LogManager.info(ENGINE_NAME, "Dialogue started: " + currentDialogueId);
     }
     
     public void progressDialogue(int nodeId) {
@@ -81,7 +95,7 @@ public class EventEngine extends BaseEngine {
     }
     
     public void endDialogue(String npcId) {
-        System.out.println("[" + ENGINE_NAME + "] Dialogue ended: " + currentDialogueId);
+        LogManager.info(ENGINE_NAME, "Dialogue ended: " + currentDialogueId);
         currentDialogueId = "";
         currentDialogueNode = 0;
         recordChange("currentDialogue", "");
@@ -107,6 +121,6 @@ public class EventEngine extends BaseEngine {
     public void shutdown() {
         super.shutdown();
         eventFlags.clear();
-        System.out.println("[" + ENGINE_NAME + "] Shutdown");
+        LogManager.info(ENGINE_NAME, "Shutdown");
     }
 }

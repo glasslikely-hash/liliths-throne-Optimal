@@ -62,6 +62,7 @@ public class LibGdxApp implements ApplicationListener {
 
         // Set up asset manager
         AssetManager.initialize(Gdx.files);
+        AssetManager.loadEssentialAssets();
 
         // Create logic layer API
         try {

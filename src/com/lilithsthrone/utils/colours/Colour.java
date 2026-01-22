@@ -13,8 +13,6 @@ import com.lilithsthrone.game.PropertyValue;
 import com.lilithsthrone.main.Main;
 import com.lilithsthrone.utils.Util;
 
-import javafx.scene.paint.Color;
-
 /**
  * @since 0.3.7
  * @version 0.4
@@ -27,9 +25,9 @@ public class Colour {
 	
 	private boolean metallic;
 	
-	private Color colour;
-	private Color lightColour;
-	private Color coveringIconColour;
+	private ColorRGB colour;
+	private ColorRGB lightColour;
+	private ColorRGB coveringIconColour;
 	
 	private String name;
 	private List<String> formattingNames;
@@ -39,7 +37,7 @@ public class Colour {
 	
 	private List<ColourTag> tags;
 	
-	public Colour(Color colour) {
+	public Colour(ColorRGB colour) {
 		this.metallic = false;
 		this.colour = colour;
 		this.lightColour = colour;
@@ -160,7 +158,7 @@ public class Colour {
 	}
 
 	public String toRGBA(double alpha) {
-		Color color = Color.web(this.toWebHexString());
+		ColorRGB color = ColorRGB.web(this.toWebHexString());
 		return "rgba(" + (int)(color.getRed()*255) + ", " + (int)(color.getGreen()*255) + ",  " + (int)(color.getBlue()*255) + ", " + alpha + ")";
 	}
 

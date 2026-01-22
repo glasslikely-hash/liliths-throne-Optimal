@@ -50,6 +50,7 @@ public class InputManager implements InputProcessor {
         public int y;                   // Screen Y coordinate
         public int pointer;             // Touch pointer ID (mobile)
         public long timestamp;          // Time of event
+        private boolean consumed = false;  // Whether event has been consumed
 
         // For swipe events
         public float swipeStartX;
@@ -60,6 +61,20 @@ public class InputManager implements InputProcessor {
         public InputEvent(InputType type) {
             this.type = type;
             this.timestamp = System.currentTimeMillis();
+        }
+        
+        /**
+         * Mark this event as consumed (won't propagate to other handlers)
+         */
+        public void consume() {
+            this.consumed = true;
+        }
+        
+        /**
+         * Check if this event has been consumed
+         */
+        public boolean isConsumed() {
+            return consumed;
         }
     }
 
@@ -89,6 +104,7 @@ public class InputManager implements InputProcessor {
 
     // Frame timing
     private float deltaTime;
+    private InputEvent lastInputEvent = null;
 
     public InputManager() {
         // Register as input processor
@@ -205,6 +221,14 @@ public class InputManager implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        // Create input event for mouse button press / touch down
+        InputEvent event = new InputEvent(InputType.MOUSE_BUTTON);
+        event.x = screenX;
+        event.y = screenY;
+        event.button = button;
+        event.pointer = pointer;
+        this.lastInputEvent = event;
+        
         if (pointer < MAX_TOUCH_POINTERS) {
             touchPressed[pointer] = true;
             touchX[pointer] = screenX;
@@ -255,5 +279,14 @@ public class InputManager implements InputProcessor {
     @Override
     public boolean scrolled(float amountX, float amountY) {
         return false;
+    }
+    
+    /**
+     * Get the last input event that occurred
+     */
+    public InputEvent getLastInputEvent() {
+        InputEvent event = lastInputEvent;
+        lastInputEvent = null; // Clear for next frame
+        return event;
     }
 }
